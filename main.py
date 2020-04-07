@@ -1,49 +1,32 @@
-import networkx
 import os
-import random
-from datetime import datetime
-from chromosome import Chromosome
 from geneticalgorithm import GA
+from chromosome import Chromosome
 
-def readNetwork(fileName):
-
-    graph = networkx.read_gml(fileName, label = 'id')
-    network = {}
-    mat = []
-    degrees = []
-    network['noNodes'] = graph.number_of_nodes()
-    network['noEdges'] = graph.number_of_edges()
-
-    mat = [[0 for _ in graph.nodes] for _ in graph.nodes]
-    degrees = [0 for _ in graph.nodes]
-    
-    for vertex, neighbour in graph.edges:
-        row = vertex - 1
-        column = neighbour - 1
-
-        mat[row][column] = mat[column][row] = 1
-        degrees[row] += 1
-        degrees[column] += 1
-
-    network['mat'] = mat
-    network['degrees'] = degrees
-    
-    return network
-
+def readFromFile(fileName):
+    with open(fileName) as file:
+        content = [line.strip() for line in file.readlines()]
+        dim = int(content.pop(0))
+        mat = [[int(number) for number in line.split(',')] for line in content]
+        return dim, mat
 
 def main():
-    currentDir = os.getcwd();
-    filePath = os.path.join(currentDir, 'football/football.gml')
-    network = readNetwork(filePath)
-    params = {'generations': 2000, 'size': 300, 'tournamentSize': 30}
+    fileName = "hard_02_tsp.txt"
+    #fileName = "medium_01_tsp.txt"
+    #fileName = "easy_01_tsp.txt"
 
-    random.seed(datetime.now())
+    currentDir = os.getcwd()
+    path = os.path.join(currentDir, fileName)
 
-    geneticAlg = GA(params, network)
-    generation = 0
-    while generation < params['generations']:
-        generation += 1
-        geneticAlg.nextGeneration()
-        print(geneticAlg.bestChromosome().fitness, geneticAlg.worstChromosome().fitness)
-    print(geneticAlg.bestChromosome().decoded())
+    dim, mat = readFromFile(path)
+
+    data = {'dim': dim, 'mat': mat, 'city': 0}
+    params = {'generations': 5000, 'population': 1000, 'tournament': 100}
+    
+    ga = GA(params, data)
+    gen = 0
+    while gen < params['generations']:
+        gen += 1
+        ga.nextGeneration()
+        print(ga.bestChromosome().fitness(), ga.worstChromosome().fitness())
+    print(ga.bestChromosome().repres)
 main()
